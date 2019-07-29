@@ -1,5 +1,6 @@
 package dev.niekirk.com.instagram4android;
 
+import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -11,7 +12,11 @@ import dev.niekirk.com.instagram4android.requests.InstagramLoginRequest;
 import dev.niekirk.com.instagram4android.requests.InstagramRequest;
 import dev.niekirk.com.instagram4android.requests.InstagramSyncFeaturesRequest;
 import dev.niekirk.com.instagram4android.requests.InstagramTimelineFeedRequest;
+import dev.niekirk.com.instagram4android.requests.challenge.InstagramChallengeRequiredRequest;
+import dev.niekirk.com.instagram4android.requests.challenge.InstagramChallengeRequiredResult;
+import dev.niekirk.com.instagram4android.requests.challenge.InstagramChallengeResult;
 import dev.niekirk.com.instagram4android.requests.internal.InstagramFetchHeadersRequest;
+import dev.niekirk.com.instagram4android.requests.payload.InstagramCheckUsernameResult;
 import dev.niekirk.com.instagram4android.requests.payload.InstagramFbLoginPayload;
 import dev.niekirk.com.instagram4android.requests.payload.InstagramLoginPayload;
 import dev.niekirk.com.instagram4android.requests.payload.InstagramLoginResult;
@@ -44,13 +49,16 @@ public class Instagram4Android {
     @Getter
     protected String deviceId;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private String username;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private String password;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private String accessToken;
 
     @Getter
@@ -59,13 +67,16 @@ public class Instagram4Android {
     @Getter
     private String uuid;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     protected String rankToken;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private long userId;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     protected Response lastResponse;
 
     @Getter
@@ -111,7 +122,7 @@ public class Instagram4Android {
                         List<Cookie> validCookies = new ArrayList<>();
                         for (Map.Entry<String, Cookie> entry : cookieStore.entrySet()) {
                             Cookie cookie = entry.getValue();
-                            if(cookie.expiresAt() >= System.currentTimeMillis()) {
+                            if (cookie.expiresAt() >= System.currentTimeMillis()) {
                                 validCookies.add(cookie);
                             }
                         }
@@ -164,6 +175,15 @@ public class Instagram4Android {
 
     }
 
+    public InstagramChallengeRequiredResult challengeRequired(InstagramChallengeResult challenge) throws IOException {
+        String url = challenge.url;
+        String[] urlArray = url.split("/");
+        int lastIndex = urlArray.length;
+        String result = urlArray[lastIndex - 3] + "/" + urlArray[lastIndex - 2] + "/" + urlArray[lastIndex - 1];
+        InstagramChallengeRequiredResult challengeRequiredResult = this.sendRequest(new InstagramChallengeRequiredRequest(result, uuid, deviceId));
+        return challengeRequiredResult;
+    }
+
     public InstagramLoginResult login() throws IOException {
 
         //Log.d("LOGIN", "Logging with user " + username + " and password " + password.replaceAll("[a-zA-Z0-9]", "*"));
@@ -197,8 +217,6 @@ public class Instagram4Android {
             this.sendRequest(new InstagramGetInboxRequest());
             this.sendRequest(new InstagramGetRecentActivityRequest());
         }
-
-
         return loginResult;
     }
 
@@ -206,7 +224,7 @@ public class Instagram4Android {
     public String getOrFetchCsrf(HttpUrl url) throws IOException {
 
         Cookie cookie = getCsrfCookie(url);
-        if(cookie == null) {
+        if (cookie == null) {
             sendRequest(new InstagramFetchHeadersRequest());
             cookie = getCsrfCookie(url);
         }
@@ -217,10 +235,10 @@ public class Instagram4Android {
 
     public Cookie getCsrfCookie(HttpUrl url) {
 
-        for(Cookie cookie: client.cookieJar().loadForRequest(url)) {
+        for (Cookie cookie : client.cookieJar().loadForRequest(url)) {
 
 //            Log.d("GETCOOKIE", "Name: " + cookie.name());
-            if(cookie.name().equalsIgnoreCase("csrftoken")) {
+            if (cookie.name().equalsIgnoreCase("csrftoken")) {
                 return cookie;
             }
 

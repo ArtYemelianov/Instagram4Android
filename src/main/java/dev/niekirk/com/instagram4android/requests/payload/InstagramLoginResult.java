@@ -1,5 +1,6 @@
 package dev.niekirk.com.instagram4android.requests.payload;
 
+import dev.niekirk.com.instagram4android.requests.challenge.InstagramChallengeResult;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -15,4 +16,5 @@ public class InstagramLoginResult extends StatusResult {
     private InstagramLoggedUser logged_in_user;
     private String error_type;
     private String checkpoint_url;
+    private InstagramChallengeResult challenge;
 }
